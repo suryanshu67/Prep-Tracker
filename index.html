@@ -860,7 +860,7 @@ function showToast(msg){
 function copyToClipboard(text){
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(text)
-      .then(() => showToast('Link copied! Ab kahin bhi share kar do 🎉'))
+      .then(() => showToast('Link Copied🎊'))
       .catch(() => fallbackCopy(text));
   } else {
     fallbackCopy(text);
@@ -876,9 +876,9 @@ function fallbackCopy(text){
   ta.select();
   try{
     document.execCommand('copy');
-    showToast('Link copied! Ab kahin bhi share kar do 🎉');
+    showToast('Link Copied🎊');
   }catch(e){
-    showToast('Copy nahi hua, link manually select kar lo');
+    showToast('Copy failed');
   }
   document.body.removeChild(ta);
 }
@@ -920,6 +920,7 @@ function enterSnapshotMode(snap){
 
   document.getElementById('exitSnapshotLink').addEventListener('click', (e) => {
     e.preventDefault();
+    try{ localStorage.removeItem(NAME_KEY); }catch(err){ console.error('Could not clear name', err); }
     window.location.hash = '';
     window.location.reload();
   });
