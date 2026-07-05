@@ -2,6 +2,8 @@
 
 A simple topic tracker to help track preparation progress for SSC CGL — Maths and Reasoning both covered.
 
+🔗 **Live:** https://sunny-prep-tracker.vercel.app/
+
 ## Features
 
 - Topic-wise checklist for Maths and Reasoning
@@ -12,9 +14,14 @@ A simple topic tracker to help track preparation progress for SSC CGL — Maths 
 - Clean dark UI with smooth animations and a subtle twinkling star background
 - Progress auto-saves in your browser
 
+## Coming Soon
+
+- English section
+- GK/GS (General Knowledge & General Studies) section
+
 ## How to use
 
-1. Open `index.html` in any browser
+1. Open the [live link](https://sunny-prep-tracker.vercel.app/) or `index.html` in any browser
 2. Enter your name when prompted (only asked once)
 3. Tap/click a topic once you've covered it
 4. Track your progress with the progress bar and dial
