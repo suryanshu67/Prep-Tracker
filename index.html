@@ -329,6 +329,96 @@
     text-align:center;
     perspective:500px;
   }
+  .footer-actions{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .share-btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:1px;
+    color:#ffffff;
+    background:linear-gradient(135deg, #6D6BF7 0%, #A855F7 100%);
+    border:none;
+    padding:10px 22px;
+    border-radius:24px;
+    cursor:pointer;
+    text-transform:uppercase;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 8px 18px -6px rgba(124,108,240,0.5);
+    transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+  }
+  .share-btn::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(120deg, transparent 25%, rgba(255,255,255,0.35) 50%, transparent 75%);
+    transform:translateX(-130%);
+    transition:transform .6s ease;
+  }
+  .share-btn:hover::before{transform:translateX(130%);}
+  .share-btn:hover{
+    transform:translateY(-3px);
+    box-shadow:0 12px 24px -6px rgba(124,108,240,0.65);
+  }
+  .share-btn:active{transform:translateY(0) scale(0.97);}
+
+  .snapshot-banner{
+    display:none;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+    background:linear-gradient(180deg, rgba(156,140,255,0.10), rgba(156,140,255,0.03));
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 16px;
+    margin-bottom:22px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--cream-dim);
+    text-align:center;
+  }
+  .snapshot-icon{font-size:14px;}
+  #exitSnapshotLink{
+    color:var(--accent-soft);
+    text-decoration:none;
+    font-weight:700;
+    border-bottom:1px solid rgba(156,140,255,0.4);
+  }
+  #exitSnapshotLink:hover{color:#fff;}
+
+  body.snapshot-mode .topic{cursor:default;}
+  body.snapshot-mode .topic:hover{background:none;transform:none;}
+  body.snapshot-mode .topic:hover .box{transform:none;background:none;}
+
+  .toast{
+    position:fixed;
+    bottom:26px;
+    left:50%;
+    transform:translateX(-50%) translateY(16px);
+    background:var(--navy-panel);
+    border:1px solid var(--line);
+    color:var(--cream);
+    padding:12px 22px;
+    border-radius:12px;
+    font-size:13px;
+    font-family:'Inter', sans-serif;
+    box-shadow:0 16px 34px -10px rgba(0,0,0,0.6);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease, transform .3s ease;
+    z-index:200;
+    max-width:88%;
+    text-align:center;
+  }
+  .toast.visible{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
   .quote{
     font-family:'Playfair Display', serif;
     font-style:italic;
@@ -501,6 +591,12 @@
     </div>
   </div>
 
+  <div class="snapshot-banner" id="snapshotBanner">
+    <span class="snapshot-icon">📸</span>
+    <span id="snapshotText"></span>
+    <a href="#" id="exitSnapshotLink">Start your own tracker →</a>
+  </div>
+
   <div class="tabs">
     <div class="tab active" data-subject="maths">Maths <span class="tab-count" id="tabCountMaths"></span></div>
     <div class="tab" data-subject="reasoning">Reasoning <span class="tab-count" id="tabCountReasoning"></span></div>
@@ -516,14 +612,19 @@
 
   <footer>
     <div class="quote">"Iss Baar Nahi, To Kabhi Nahi."</div>
-    <button class="reset-btn" id="resetBtn">Reset This Subject</button>
+    <div class="footer-actions">
+      <button class="reset-btn" id="resetBtn">Reset This Subject</button>
+      <button class="share-btn" id="shareBtn">Share My Progress</button>
+    </div>
   </footer>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <div class="modal-overlay" id="nameModalOverlay">
   <div class="modal-card">
-    <h2 class="modal-title">Naam <em>bata do</em></h2>
-    <input type="text" id="nameInput" class="modal-input" placeholder="e.g. Rohan" maxlength="24" autocomplete="off" />
+    <h2 class="modal-title">Enter Your <em>Name</em></h2>
+    <input type="text" id="nameInput" class="modal-input" placeholder="Type your name here" maxlength="24" autocomplete="off" />
     <button class="modal-btn" id="nameSubmitBtn">Start My Tracker</button>
   </div>
 </div>
@@ -556,6 +657,7 @@ const SUBJECTS = {
 const ROMAN = ["I","II","III","IV","V","VI"];
 const NAME_KEY = "ssc_cgl_user_name";
 let currentSubject = "maths";
+let isSnapshotMode = false;
 let state = { maths: {}, reasoning: {} };
 let collapsedPhases = { maths: {}, reasoning: {} };
 
@@ -655,6 +757,7 @@ function renderAll(){
 }
 
 function toggle(id){
+  if(isSnapshotMode) return;
   state[currentSubject][id] = !state[currentSubject][id];
   renderAll();
   try{
@@ -707,6 +810,122 @@ function addTilt(el, strength = 10){
     el.style.setProperty('--tiltY', '0deg');
   });
 }
+
+function encodeSnapshot(obj){
+  try{
+    const json = JSON.stringify(obj);
+    return btoa(unescape(encodeURIComponent(json)));
+  }catch(e){
+    console.error('Encode failed', e);
+    return null;
+  }
+}
+
+function decodeSnapshot(str){
+  try{
+    const json = decodeURIComponent(escape(atob(str)));
+    return JSON.parse(json);
+  }catch(e){
+    console.error('Decode failed', e);
+    return null;
+  }
+}
+
+function getSnapshotFromHash(){
+  const hash = window.location.hash || '';
+  const match = hash.match(/snap=([^&]+)/);
+  if(!match) return null;
+  return decodeSnapshot(decodeURIComponent(match[1]));
+}
+
+function formatSnapshotDate(ts){
+  try{
+    const d = new Date(ts);
+    const datePart = d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+    const timePart = d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+    return `${datePart}, ${timePart}`;
+  }catch(e){ return ''; }
+}
+
+let toastTimer = null;
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  if(!toast) return;
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('visible'), 2600);
+}
+
+function copyToClipboard(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('Link copied! Ab kahin bhi share kar do 🎉'))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{
+    document.execCommand('copy');
+    showToast('Link copied! Ab kahin bhi share kar do 🎉');
+  }catch(e){
+    showToast('Copy nahi hua, link manually select kar lo');
+  }
+  document.body.removeChild(ta);
+}
+
+function shareProgress(){
+  let name = 'Sunny';
+  try{ name = localStorage.getItem(NAME_KEY) || 'Sunny'; }catch(e){}
+  const snapshot = {
+    name: name,
+    maths: state.maths,
+    reasoning: state.reasoning,
+    ts: Date.now()
+  };
+  const encoded = encodeSnapshot(snapshot);
+  if(!encoded){
+    showToast('Kuch gadbad ho gayi, dobara try karo');
+    return;
+  }
+  const url = `${window.location.origin}${window.location.pathname}#snap=${encoded}`;
+  copyToClipboard(url);
+}
+
+function enterSnapshotMode(snap){
+  isSnapshotMode = true;
+  document.body.classList.add('snapshot-mode');
+  state.maths = snap.maths || {};
+  state.reasoning = snap.reasoning || {};
+  renderAll();
+  applyName(snap.name || 'Sunny');
+
+  const banner = document.getElementById('snapshotBanner');
+  const text = document.getElementById('snapshotText');
+  text.textContent = `Snapshot of ${possessive(snap.name || 'Sunny')} progress · ${formatSnapshotDate(snap.ts)}`;
+  banner.style.display = 'flex';
+
+  document.getElementById('renameBtn').style.display = 'none';
+  document.getElementById('resetBtn').style.display = 'none';
+  document.getElementById('shareBtn').style.display = 'none';
+
+  document.getElementById('exitSnapshotLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.hash = '';
+    window.location.reload();
+  });
+}
+
+document.getElementById('shareBtn').addEventListener('click', shareProgress);
 
 function possessive(name){
   const trimmed = (name || '').trim();
@@ -791,10 +1010,15 @@ function initParticles(){
 }
 
 (function init(){
-  loadSubject('maths');
-  loadSubject('reasoning');
-  renderAll();
-  initName();
+  const snap = getSnapshotFromHash();
+  if(snap){
+    enterSnapshotMode(snap);
+  } else {
+    loadSubject('maths');
+    loadSubject('reasoning');
+    renderAll();
+    initName();
+  }
   initParticles();
 
   document.querySelectorAll('.tab').forEach(t => addTilt(t, 8));
