@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SSC CGL Prep Dossier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -28,8 +29,31 @@
     font-family:'Inter', sans-serif;
     min-height:100vh;
     padding:28px 16px 70px;
+    position:relative;
+    overflow-x:hidden;
   }
-  .wrap{max-width:760px;margin:0 auto;}
+  .wrap{max-width:760px;margin:0 auto;position:relative;z-index:1;}
+  .particle-field{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    pointer-events:none;
+    z-index:0;
+  }
+  .particle{
+    position:absolute;
+    border-radius:50%;
+    background:#ffffff;
+    opacity:0;
+  }
+  @keyframes twinkle{
+    0%, 100%{ opacity:0; }
+    50%{ opacity:var(--max-op, 0.5); }
+  }
+  @keyframes drift{
+    from{ transform:translate(0,0); }
+    to{ transform:translate(var(--dx,20px), var(--dy,20px)); }
+  }
 
   .dossier-head{
     display:flex;
@@ -60,6 +84,22 @@
   h1 em{
     font-style:normal;
     color:var(--accent-soft);
+  }
+  .rename-btn{
+    background:none;
+    border:none;
+    color:var(--cream-dim);
+    font-size:14px;
+    cursor:pointer;
+    vertical-align:middle;
+    margin-left:6px;
+    opacity:0.55;
+    transition:opacity .2s ease, color .2s ease, transform .2s ease;
+  }
+  .rename-btn:hover{
+    opacity:1;
+    color:var(--accent-soft);
+    transform:scale(1.15);
   }
 
   .dial-box{
@@ -334,6 +374,100 @@
   .topic{transition:background .2s ease, transform .2s ease;}
   .topic:hover{transform:translateX(3px);}
 
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(6,6,12,0.72);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:100;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .modal-overlay.visible{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .modal-card{
+    width:100%;
+    max-width:360px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0)) , var(--navy-panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:30px 26px;
+    text-align:center;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(156,140,255,0.06);
+    transform:translateY(14px) scale(0.97);
+    transition:transform .35s cubic-bezier(.22,1,.36,1);
+  }
+  .modal-overlay.visible .modal-card{
+    transform:translateY(0) scale(1);
+  }
+  .modal-eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:3px;
+    color:var(--accent);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .modal-title{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size:22px;
+    margin:0 0 20px;
+    color:var(--cream);
+  }
+  .modal-title em{font-style:normal;color:var(--accent-soft);}
+  .modal-sub{
+    font-size:13px;
+    color:var(--cream-dim);
+    margin:0 0 20px;
+    line-height:1.5;
+  }
+  .modal-input{
+    width:100%;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:13px 14px;
+    font-family:'Inter', sans-serif;
+    font-size:15px;
+    color:var(--cream);
+    margin-bottom:16px;
+    outline:none;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .modal-input::placeholder{color:var(--cream-dim);opacity:0.6;}
+  .modal-input:focus{
+    border-color:var(--accent-soft);
+    background:rgba(255,255,255,0.06);
+  }
+  .modal-btn{
+    width:100%;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:#fff;
+    background:linear-gradient(135deg, #6D6BF7 0%, #A855F7 100%);
+    border:none;
+    padding:13px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:0 10px 24px -8px rgba(124,108,240,0.55);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .modal-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 28px -8px rgba(124,108,240,0.65);
+  }
+  .modal-btn:active{transform:translateY(0) scale(0.98);}
+
   @media (max-width:480px){
     h1{font-size:26px;}
     .dial{width:72px;height:72px;}
@@ -341,12 +475,13 @@
 </style>
 </head>
 <body>
+<div class="particle-field" id="particleField"></div>
 <div class="wrap">
 
   <div class="dossier-head">
     <div>
       <div class="eyebrow">Mission Tracker · SSC CGL</div>
-      <h1>Sunny's Prep <em>Dossier</em></h1>
+      <h1><span id="userName">Sunny's</span> Prep <em>Dossier</em><button class="rename-btn" id="renameBtn" title="Change name">&#9998;</button></h1>
     </div>
     <div class="dial-box">
       <div class="dial">
@@ -385,6 +520,14 @@
   </footer>
 </div>
 
+<div class="modal-overlay" id="nameModalOverlay">
+  <div class="modal-card">
+    <h2 class="modal-title">Naam <em>bata do</em></h2>
+    <input type="text" id="nameInput" class="modal-input" placeholder="e.g. Rohan" maxlength="24" autocomplete="off" />
+    <button class="modal-btn" id="nameSubmitBtn">Start My Tracker</button>
+  </div>
+</div>
+
 <script>
 const SUBJECTS = {
   maths: {
@@ -411,6 +554,7 @@ const SUBJECTS = {
 };
 
 const ROMAN = ["I","II","III","IV","V","VI"];
+const NAME_KEY = "ssc_cgl_user_name";
 let currentSubject = "maths";
 let state = { maths: {}, reasoning: {} };
 let collapsedPhases = { maths: {}, reasoning: {} };
@@ -564,10 +708,94 @@ function addTilt(el, strength = 10){
   });
 }
 
+function possessive(name){
+  const trimmed = (name || '').trim();
+  if(!trimmed) return "Sunny's";
+  return /s$/i.test(trimmed) ? trimmed + "'" : trimmed + "'s";
+}
+
+function applyName(name){
+  document.getElementById('userName').textContent = possessive(name);
+}
+
+function showModal(prefill){
+  const overlay = document.getElementById('nameModalOverlay');
+  const input = document.getElementById('nameInput');
+  input.value = prefill || '';
+  overlay.classList.add('visible');
+  setTimeout(() => input.focus(), 250);
+}
+
+function hideModal(){
+  document.getElementById('nameModalOverlay').classList.remove('visible');
+}
+
+function submitName(){
+  const input = document.getElementById('nameInput');
+  const val = input.value.trim();
+  const finalName = val || 'Sunny';
+  try{
+    localStorage.setItem(NAME_KEY, finalName);
+  }catch(e){ console.error('Name save failed', e); }
+  applyName(finalName);
+  hideModal();
+}
+
+document.getElementById('nameSubmitBtn').addEventListener('click', submitName);
+document.getElementById('nameInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') submitName();
+});
+document.getElementById('renameBtn').addEventListener('click', () => {
+  let existing = '';
+  try{ existing = localStorage.getItem(NAME_KEY) || ''; }catch(e){}
+  showModal(existing);
+});
+
+function initName(){
+  let saved = '';
+  try{ saved = localStorage.getItem(NAME_KEY); }catch(e){ saved = null; }
+  if(saved){
+    applyName(saved);
+  } else {
+    showModal();
+  }
+}
+
+function initParticles(){
+  const field = document.getElementById('particleField');
+  if(!field) return;
+  const COUNT = 45;
+  for(let i=0;i<COUNT;i++){
+    const dot = document.createElement('div');
+    dot.className = 'particle';
+    const size = (Math.random()*2.2 + 1.4).toFixed(1);
+    const top = (Math.random()*100).toFixed(2);
+    const left = (Math.random()*100).toFixed(2);
+    const dx = (Math.random()*50 - 25).toFixed(0) + 'px';
+    const dy = (Math.random()*50 - 25).toFixed(0) + 'px';
+    const blinkDur = (Math.random()*5 + 4).toFixed(1) + 's';
+    const driftDur = (Math.random()*22 + 18).toFixed(1) + 's';
+    const delay = (Math.random()*6).toFixed(1) + 's';
+    const maxOpacity = (Math.random()*0.35 + 0.2).toFixed(2);
+
+    dot.style.top = top + '%';
+    dot.style.left = left + '%';
+    dot.style.width = size + 'px';
+    dot.style.height = size + 'px';
+    dot.style.setProperty('--dx', dx);
+    dot.style.setProperty('--dy', dy);
+    dot.style.setProperty('--max-op', maxOpacity);
+    dot.style.animation = `twinkle ${blinkDur} ease-in-out ${delay} infinite, drift ${driftDur} ease-in-out ${delay} infinite alternate`;
+    field.appendChild(dot);
+  }
+}
+
 (function init(){
   loadSubject('maths');
   loadSubject('reasoning');
   renderAll();
+  initName();
+  initParticles();
 
   document.querySelectorAll('.tab').forEach(t => addTilt(t, 8));
   addTilt(document.getElementById('resetBtn'), 6);
