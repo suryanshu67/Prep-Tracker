@@ -261,7 +261,7 @@
   }
   .phase.collapsed .chevron{transform:rotate(-45deg);}
   .phase-body{
-    max-height:1000px;
+    max-height:3000px;
     overflow:hidden;
     transition:max-height .35s ease;
     border-top:1px solid var(--line);
@@ -633,12 +633,13 @@
 const SUBJECTS = {
   maths: {
     label: "MATHEMATICS",
-    storageKey: "ssc_cgl_maths_progress_v2",
+    storageKey: "ssc_cgl_maths_progress_v3",
     phases: [
-      { title:"Foundation", topics:["Number System","Simplification (BODMAS) & Approximation","HCF & LCM","Percentage"] },
-      { title:"Arithmetic Core", topics:["Ratio & Proportion","Average","Profit, Loss & Discount","Simple Interest & Compound Interest","Time & Work (+ Pipes & Cistern)","Time, Speed & Distance (+ Boats & Trains)","Mixture & Alligation","Partnership"] },
-      { title:"Advance Maths", topics:["Algebra","Trigonometry","Geometry","Mensuration (2D & 3D)","Coordinate Geometry (basic)"] },
-      { title:"Data & Stats", topics:["Data Interpretation","Data Sufficiency","Statistics (Mean, Median, Mode, SD)"] }
+      { title:"Basics (Calculation + Number System)", topics:["Calculation Videos","Simplification","Number System","HCF & LCM","Surds & Indices"] },
+      { title:"Arithmetic (Sabse Important)", topics:["Percentage","Ratio","Proportion","Average","Ages","Partnership","Mixture","Alligation","Profit & Loss","Discount","Simple Interest","Compound Interest","Time & Work","Work & Wages","Pipe & Cistern","Time, Speed & Distance","Train","Boat & Stream","Race"] },
+      { title:"Advanced Maths", topics:["Algebra","Quadratic Equation","Trigonometry","Height & Distance","Geometry","Mensuration 2D","Mensuration 3D"] },
+      { title:"Last Me", topics:["Statistics","Data Interpretation (DI)"] },
+      { title:"Time Bache Tab", topics:["AP & GP","Coordinate Geometry","Probability"] }
     ]
   },
   reasoning: {
