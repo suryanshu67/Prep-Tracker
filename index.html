@@ -323,6 +323,25 @@
     text-decoration:line-through;
     text-decoration-color:rgba(154,161,181,0.5);
   }
+  .class-count{
+    flex:none;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--accent-soft);
+    background:rgba(156,140,255,0.10);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:3px 10px;
+    white-space:nowrap;
+  }
+  .topic.done .class-count{opacity:0.5;}
+  .phase-classes{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--accent-soft);
+    flex:none;
+    white-space:nowrap;
+  }
 
   footer{
     margin-top:34px;
@@ -655,6 +674,24 @@ const SUBJECTS = {
   }
 };
 
+const CLASS_COUNTS = {
+  maths: {
+    "Percentage":19,"Ratio":11,"Proportion":2,"Average":16,"Ages":2,"Partnership":7,
+    "Mixture":7,"Alligation":6,"Profit & Loss":14,"Discount":9,"Simple Interest":18,
+    "Compound Interest":18,"Time & Work":14,"Work & Wages":2,"Pipe & Cistern":5,
+    "Time, Speed & Distance":15,"Train":6,"Boat & Stream":6,"Race":3,
+    "Algebra":20,"Quadratic Equation":2,"Trigonometry":24,"Height & Distance":6,
+    "Geometry":45,"Mensuration 2D":14,"Mensuration 3D":21,
+    "Statistics":5,"Data Interpretation (DI)":16
+  },
+  reasoning: {}
+};
+
+function classesFor(subject, topic){
+  const n = (CLASS_COUNTS[subject] || {})[topic];
+  return typeof n === 'number' ? n : null;
+}
+
 const ROMAN = ["I","II","III","IV","V","VI"];
 const NAME_KEY = "ssc_cgl_user_name";
 let currentSubject = "maths";
@@ -707,6 +744,9 @@ function renderPhases(){
     let doneCount = 0;
     phase.topics.forEach((t, tIdx) => { if(state[currentSubject][topicId(pIdx,tIdx)]) doneCount++; });
 
+    let phaseClasses = 0;
+    phase.topics.forEach(t => { const n = classesFor(currentSubject, t); if(n) phaseClasses += n; });
+
     const isCollapsed = !!collapsedPhases[currentSubject][pIdx];
     const phaseDiv = document.createElement('div');
     phaseDiv.className = 'phase' + (isCollapsed ? ' collapsed' : '');
@@ -716,6 +756,7 @@ function renderPhases(){
     head.innerHTML = `
       <div class="phase-numeral">${ROMAN[pIdx] || (pIdx+1)}</div>
       <div class="phase-title">${phase.title}</div>
+      ${phaseClasses ? `<div class="phase-classes">${phaseClasses} classes</div>` : ''}
       <div class="phase-tally">${doneCount}/${phase.topics.length}</div>
       <div class="chevron"></div>
     `;
@@ -741,6 +782,7 @@ function renderPhases(){
           </svg>
         </div>
         <div class="topic-text">${topic}</div>
+        ${classesFor(currentSubject, topic) ? `<div class="class-count">${classesFor(currentSubject, topic)} classes</div>` : ''}
       `;
       row.addEventListener('click', () => toggle(id));
       body.appendChild(row);
